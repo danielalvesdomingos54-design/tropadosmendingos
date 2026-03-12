@@ -1,0 +1,230 @@
+local Players = game:GetService("Players")
+local UIS = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local player = Players.LocalPlayer
+
+-- Configurações
+local KEY_CORRETA = "mendingos123"
+local ToggleKey = Enum.KeyCode.K
+local AccentColor = Color3.fromRGB(0, 255, 150)
+local BgColor = Color3.fromRGB(10, 10, 10)
+local SecondaryColor = Color3.fromRGB(20, 20, 20)
+
+local DESTINOS = {
+    { nome = "Banco", pos = Vector3.new(20.97,7.27,-465.04) },
+    { nome = "Hangar", pos = Vector3.new(674.39,5.70,-113.67) }, 
+    { nome = "Lava Dinheiro", pos = Vector3.new(-281.52,47.87,962.85) },
+    { nome = "Loja Ilegal", pos = Vector3.new(-221.45,71.08,987.37) },
+    { nome = "Loja 1", pos = Vector3.new(-668.75,16.44,178.76) },
+    { nome = "Loja 2", pos = Vector3.new(-556.03,16.42,654.95) },
+    { nome = "Loja 3", pos = Vector3.new(904.10,16.52,-117.28) },
+    { nome = "Loja 4", pos = Vector3.new(101.03,5.00,-510.79) },
+    { nome = "Praça", pos = Vector3.new(-72.57,5.18,275.64) },
+    { nome = "Concessionaria", pos = Vector3.new(-363.94,3.51,299.96) },
+    { nome = "Conce de Heli", pos = Vector3.new(-7514.03,3.23,-3449.74) },
+    { nome = "Pier", pos = Vector3.new(-80.59,-2.54,-854.85) },
+    { nome = "Farm de Maconha", pos = Vector3.new(-3692.07,4.73,1135.22) },
+    { nome = "Mercadin", pos = Vector3.new(-43.53,3.51,180.74) }
+}
+
+-------------------------------------------------
+-- UTILS
+-------------------------------------------------
+
+local function ApplyCorner(obj, r)
+    local c = Instance.new("UICorner")
+    c.CornerRadius = UDim.new(0, r or 8)
+    c.Parent = obj
+end
+
+local function MakeShadow(obj)
+    local s = Instance.new("UIStroke")
+    s.Thickness = 1.5
+    s.Transparency = 0.5
+    s.Color = Color3.new(1,1,1)
+    s.Parent = obj
+    return s
+end
+
+local function RGB(obj, prop)
+    task.spawn(function()
+        local h = 0
+        while obj and obj.Parent do
+            h = h + 0.003
+            obj[prop] = Color3.fromHSV(h, 0.7, 1)
+            task.wait()
+        end
+    end)
+end
+
+-------------------------------------------------
+-- GUI PRINCIPAL
+-------------------------------------------------
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "XYTEEY_PREMIUM"
+gui.Parent = player.PlayerGui
+gui.ResetOnSpawn = false
+
+local function abrirPainel()
+    local main = Instance.new("Frame", gui)
+    main.Size = UDim2.new(0, 500, 0, 380)
+    main.Position = UDim2.new(0.5, -250, 0.5, -190)
+    main.BackgroundColor3 = BgColor
+    main.ClipsDescendants = true
+    ApplyCorner(main, 12)
+    
+    local stroke = Instance.new("UIStroke", main)
+    stroke.Thickness = 2
+    RGB(stroke, "Color")
+
+    -- Sidebar moderna
+    local sidebar = Instance.new("Frame", main)
+    sidebar.Size = UDim2.new(0, 140, 1, 0)
+    sidebar.BackgroundColor3 = SecondaryColor
+    ApplyCorner(sidebar, 12)
+
+    local sideTitle = Instance.new("TextLabel", sidebar)
+    sideTitle.Size = UDim2.new(1, 0, 0, 60)
+    sideTitle.Text = "XYTEEY HUB"
+    sideTitle.Font = Enum.Font.GothamBlack
+    sideTitle.TextColor3 = Color3.new(1,1,1)
+    sideTitle.TextSize = 20
+    sideTitle.BackgroundTransparency = 1
+
+    local btnContainer = Instance.new("Frame", sidebar)
+    btnContainer.Size = UDim2.new(1, 0, 1, -60)
+    btnContainer.Position = UDim2.new(0, 0, 0, 60)
+    btnContainer.BackgroundTransparency = 1
+    local blayout = Instance.new("UIListLayout", btnContainer); blayout.Padding = UDim.new(0, 8); blayout.HorizontalAlignment = "Center"
+
+    -- Área de Conteúdo
+    local content = Instance.new("Frame", main)
+    content.Size = UDim2.new(1, -160, 1, -40)
+    content.Position = UDim2.new(0, 150, 0, 20)
+    content.BackgroundTransparency = 1
+
+    local pageTeleports = Instance.new("ScrollingFrame", content)
+    pageTeleports.Size = UDim2.new(1, 0, 1, 0); pageTeleports.BackgroundTransparency = 1; pageTeleports.ScrollBarThickness = 0; pageTeleports.Visible = true
+
+    local pageScripts = Instance.new("ScrollingFrame", content)
+    pageScripts.Size = UDim2.new(1, 0, 1, 0); pageScripts.BackgroundTransparency = 1; pageScripts.ScrollBarThickness = 0; pageScripts.Visible = false
+
+    local teleLayout = Instance.new("UIListLayout", pageTeleports); teleLayout.Padding = UDim.new(0, 6)
+    local scriptLayout = Instance.new("UIListLayout", pageScripts); scriptLayout.Padding = UDim.new(0, 6)
+
+    local function createTab(name, page)
+        local b = Instance.new("TextButton", btnContainer)
+        b.Size = UDim2.new(0.85, 0, 0, 40)
+        b.Text = name
+        b.Font = Enum.Font.GothamBold
+        b.TextColor3 = Color3.new(0.7, 0.7, 0.7)
+        b.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+        ApplyCorner(b, 8)
+        
+        b.MouseButton1Click:Connect(function()
+            pageTeleports.Visible = (page == "tele")
+            pageScripts.Visible = (page == "scripts")
+            for _, v in pairs(btnContainer:GetChildren()) do
+                if v:IsA("TextButton") then 
+                    TweenService:Create(v, TweenInfo.new(0.3), {TextColor3 = Color3.new(0.7,0.7,0.7), BackgroundColor3 = Color3.fromRGB(30,30,30)}):Play()
+                end
+            end
+            TweenService:Create(b, TweenInfo.new(0.3), {TextColor3 = Color3.new(1,1,1), BackgroundColor3 = AccentColor}):Play()
+        end)
+    end
+
+    createTab("Teleports", "tele")
+    createTab("Scripts", "scripts")
+
+    -- Conteúdo Teleports
+    for _, dest in pairs(DESTINOS) do
+        local b = Instance.new("TextButton", pageTeleports)
+        b.Size = UDim2.new(0.98, 0, 0, 38); b.Text = "  " .. dest.nome; b.BackgroundColor3 = SecondaryColor; b.TextColor3 = Color3.new(0.9, 0.9, 0.9); b.Font = Enum.Font.GothamSemibold; b.TextXAlignment = "Left"; ApplyCorner(b, 6)
+        b.MouseButton1Click:Connect(function()
+            if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                player.Character.HumanoidRootPart.CFrame = CFrame.new(dest.pos)
+            end
+        end)
+    end
+
+    -- Scripts & ESP
+    local function createScriptBtn(name, url)
+        local b = Instance.new("TextButton", pageScripts)
+        b.Size = UDim2.new(0.98, 0, 0, 45); b.Text = name; b.BackgroundColor3 = SecondaryColor; b.TextColor3 = AccentColor; b.Font = Enum.Font.GothamBold; ApplyCorner(b, 8)
+        b.MouseButton1Click:Connect(function() loadstring(game:HttpGet(url))() end)
+    end
+
+    local function createEspExpander()
+        local frame = Instance.new("Frame", pageScripts)
+        frame.Size = UDim2.new(0.98, 0, 0, 45); frame.BackgroundColor3 = SecondaryColor; frame.ClipsDescendants = true; ApplyCorner(frame, 8)
+        
+        local btn = Instance.new("TextButton", frame)
+        btn.Size = UDim2.new(1, 0, 0, 45); btn.Text = "  ESP System"; btn.Font = Enum.Font.GothamBold; btn.TextColor3 = Color3.new(1,1,1); btn.TextXAlignment = "Left"; btn.BackgroundTransparency = 1
+        
+        local arrow = Instance.new("TextLabel", btn)
+        arrow.Size = UDim2.new(0, 45, 1, 0); arrow.Position = UDim2.new(1, -45, 0, 0); arrow.Text = "▼"; arrow.TextColor3 = AccentColor; arrow.BackgroundTransparency = 1
+        
+        local opt = Instance.new("Frame", frame); opt.Size = UDim2.new(1,0,0,80); opt.Position = UDim2.new(0,0,0,45); opt.BackgroundTransparency = 1
+        local on = Instance.new("TextButton", opt); on.Size = UDim2.new(0.9,0,0,30); on.Position = UDim2.new(0.05,0,0,5); on.Text = "Ligar ESP"; on.BackgroundColor3 = Color3.fromRGB(0, 150, 70); on.TextColor3 = Color3.new(1,1,1); ApplyCorner(on)
+        local off = Instance.new("TextButton", opt); off.Size = UDim2.new(0.9,0,0,30); off.Position = UDim2.new(0.05,0,0,40); off.Text = "Desligar ESP"; off.BackgroundColor3 = Color3.fromRGB(150, 0, 0); off.TextColor3 = Color3.new(1,1,1); ApplyCorner(off)
+
+        local open = false
+        btn.MouseButton1Click:Connect(function()
+            open = not open
+            TweenService:Create(frame, TweenInfo.new(0.3), {Size = open and UDim2.new(0.98, 0, 0, 130) or UDim2.new(0.98, 0, 0, 45)}):Play()
+            TweenService:Create(arrow, TweenInfo.new(0.3), {Rotation = open and 180 or 0}):Play()
+        end)
+        on.MouseButton1Click:Connect(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/wa0101/Roblox-ESP/refs/heads/main/esp.lua", true))() end)
+    end
+
+    createEspExpander()
+    createScriptBtn("Nameless Admin", "https://raw.githubusercontent.com/ltseverydayyou/Nameless-Admin/main/Source.lua")
+    createScriptBtn("Aimbot V1", "https://raw.githubusercontent.com/Exunys/AirHub/main/AirHub.lua")
+
+    -- Loop Canvas
+    task.spawn(function()
+        while task.wait(0.5) do
+            pageTeleports.CanvasSize = UDim2.new(0,0,0, teleLayout.AbsoluteContentSize.Y + 10)
+            pageScripts.CanvasSize = UDim2.new(0,0,0, scriptLayout.AbsoluteContentSize.Y + 10)
+        end
+    end)
+
+    -- Toggle & Drag
+    UIS.InputBegan:Connect(function(i, g) if not g and i.KeyCode == ToggleKey then main.Visible = not main.Visible end end)
+    local d,s,sp;sidebar.InputBegan:Connect(function(i)if i.UserInputType==Enum.UserInputType.MouseButton1 then d=true;s=i.Position;sp=main.Position end end)
+    UIS.InputChanged:Connect(function(i)if d and i.UserInputType==Enum.UserInputType.MouseMovement then local delta=i.Position-s;main.Position=UDim2.new(sp.X.Scale,sp.X.Offset+delta.X,sp.Y.Scale,sp.Y.Offset+delta.Y)end end)
+    UIS.InputEnded:Connect(function(i)if i.UserInputType==Enum.UserInputType.MouseButton1 then d=false end end)
+end
+
+-------------------------------------------------
+-- SISTEMA DE LOGIN (MODERNIZADO)
+-------------------------------------------------
+local function CriarLogin()
+    local lf = Instance.new("Frame", gui); lf.Size = UDim2.new(0, 320, 0, 220); lf.Position = UDim2.new(0.5, -160, 0.5, -110); lf.BackgroundColor3 = BgColor; ApplyCorner(lf, 15)
+    local ls = Instance.new("UIStroke", lf); ls.Thickness = 2; RGB(ls, "Color")
+
+    local welcome = Instance.new("TextLabel", lf); welcome.Size = UDim2.new(1, 0, 0, 50); welcome.Text = "BEM VINDO BUT"; welcome.Font = Enum.Font.GothamBlack; welcome.TextSize = 22; welcome.TextColor3 = Color3.new(1,1,1); welcome.BackgroundTransparency = 1
+
+    local box = Instance.new("TextBox", lf); box.Size = UDim2.new(0.85, 0, 0, 45); box.Position = UDim2.new(0.075, 0, 0.35, 0); box.PlaceholderText = "Digite a key doidao"; box.Text = ""; box.BackgroundColor3 = SecondaryColor; box.TextColor3 = Color3.new(1,1,1); box.Font = Enum.Font.GothamSemibold; ApplyCorner(box, 8)
+    
+    local btn = Instance.new("TextButton", lf); btn.Size = UDim2.new(0.85, 0, 0, 45); btn.Position = UDim2.new(0.075, 0, 0.65, 0); btn.Text = "ENTRAR NO HUB"; btn.Font = Enum.Font.GothamBold; btn.TextColor3 = Color3.fromRGB(10,10,10); btn.BackgroundColor3 = AccentColor; ApplyCorner(btn, 8)
+
+    btn.MouseButton1Click:Connect(function()
+        if box.Text == KEY_CORRETA then
+            TweenService:Create(lf, TweenInfo.new(0.5), {Position = UDim2.new(0.5, -160, 1, 50)}):Play()
+            task.wait(0.5)
+            lf:Destroy()
+            abrirPainel()
+        else
+            box.Text = ""
+            box.PlaceholderText = "KEY ERRADA, DOIDÃO!"
+            box.PlaceholderColor3 = Color3.new(1, 0, 0)
+            task.wait(1.5)
+            box.PlaceholderText = "Digite a key doidao"
+            box.PlaceholderColor3 = Color3.fromRGB(178, 178, 178)
+        end
+    end)
+end
+
+CriarLogin()
